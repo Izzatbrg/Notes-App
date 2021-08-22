@@ -10,4 +10,4 @@ data ={
     "text": "Bye Bye World"
     }
 responce = requests.post(URL+"notes", data=data)
-print(responce.json())
+print(responce.status_code)
