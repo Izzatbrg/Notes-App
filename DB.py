@@ -20,7 +20,6 @@ class DB:
         )
 
         conn.autocommit = True
-        #Creating a cursor object using the cursor() method
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         return conn, cursor
 

@@ -2,8 +2,8 @@ import sys
 import requests
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
-
-
+import json
+from flask import jsonify
 class Window(qtw.QWidget):
     def __init__(self, *argv):
         super().__init__()
@@ -47,12 +47,14 @@ class Window(qtw.QWidget):
         if not title or not text:
             self.error_msg.setText("Please enter the title and the text to continue")
             return self.error_msg.exec()
-        data ={
+
+        data = {
             "title": title,
             "text": text
-            }
+        }
+        data = json.dumps(data)
         try:
-            responce = requests.post(self.url+"notes", data=data)
+            responce = requests.post(self.url+"Notes", data=data)
             if responce.status_code ==201 :
                 self.title_input.clear()
                 self.text_input.clear()
@@ -66,10 +68,6 @@ class Window(qtw.QWidget):
         self.title_input.clear()
         self.text_input.clear()
 
-
-
-
-
     def read_style(self, stylename, wid):
         with open(stylename, "r") as f:
             wid.setStyleSheet(f.read())
@@ -82,4 +80,10 @@ def main():
 
 if __name__=='__main__':
     main()
+
+    
+ 
+
+
+
 

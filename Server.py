@@ -1,33 +1,47 @@
-from flask import Flask,jsonify
-from flask_restful import Api, request, Resource, abort 
-import json
-from DB import DB
+from flask import Flask, render_template, request
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask import jsonify
 
 app = Flask(__name__)
-api = Api(app)
-class Notes(Resource):
-    def __init__(self):
-        self.__tablename = 'notes'
-        self.db = DB()
+app.config['SQLALCHEMY_DATABASE_URI'] =     """postgresql://postgres:n3w0bj{1}@localhost:5432/Notes"""
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-    def post(self):
-        # get request data as Jason
-        title = request.form.get('title')
-        text = request.form.get('text')
-        resp = self.db.insert_note(self.__tablename,title, text)
-        if resp == 400:
-            abort(400, message="A problem acquired")
-        else: return resp
+class Note(db.Model):
+    __tablename__ = "Notes"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(), nullable=False)
+    text = db.Column(db.String(), nullable=False)
+
+    def __init__(self, title, text):
+        self.title = title
+        self.text = text
     
-    def get(self):
-        resp = self.db.get_all_notes()
-        if resp == 400:
-            abort(400, message="A problem acquired")
-        else: return resp
-        
+    def __repr__(self):
+        return f"<Note{self.title}>"
 
-api.add_resource(Notes, '/notes')
+
+@app.route('/Notes', methods=['POST','GET'])
+def handle_notes():
+    if request.method == 'POST':
+        try:
+            data = request.get_json(force=True)
+            new_notes = Note(title = data["title"], text = data["text"])
+            db.session.add(new_notes)
+            db.session.commit()
+            return {"message": "a new notes has been created successfully"}, 201
+        except :
+            return {"error":"The inserted data is not in Json format"}, 400
+    elif request.method == 'GET':
+        Notes =  Note.query.all()
+        results = [{
+            "title": Note.title,
+            "text" : Note.text
+        } for Note in Notes]
+        return {"count": len(results), "Notes": results}
+
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
